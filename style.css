@@ -1,0 +1,138 @@
+:root {
+  --zoom: 1.5;                          /* canvas scale over 320x240; change here only */
+  --row: calc(8px * var(--zoom));       /* height of one tile-row on screen */
+  --strips-w: calc(47px + 16 * var(--row));
+  --bg: #1b1b1b;
+  --panel: #262626;
+  --line: #3a3a3a;
+  --fg: #ddd;
+  --muted: #888;
+  --accent: #4af;
+}
+
+body { font: 12px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg); margin: 0; padding: 6px 8px; }
+
+#toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; row-gap: 3px; margin-bottom: 5px; }
+button, .btn {
+  font: inherit; color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 3px;
+  padding: 2px 6px; margin: 0; cursor: pointer; line-height: 1.5;
+}
+button:hover, .btn:hover { border-color: var(--accent); }
+#stats { margin-left: auto; color: var(--muted); }
+#stats b { color: var(--fg); font-weight: 600; }
+#help {
+  width: 16px; height: 16px; line-height: 14px; text-align: center;
+  border: 1px solid var(--line); border-radius: 50%; color: var(--muted); cursor: help;
+}
+.err { color: #f66; margin: 0 0 6px; white-space: pre-line; }
+.err:empty { display: none; }
+
+#canvasWrap {
+  position: relative;
+  width: calc(320px * var(--zoom));
+  height: calc(240px * var(--zoom));    /* 30 tile-rows always available; see #ruler div.pal-only */
+  border: 1px solid var(--line);
+  margin-left: 30px;                    /* room for the tile-row ruler */
+}
+canvas#main {
+  width: 100%; height: 100%;
+  image-rendering: pixelated;
+  background: #000; display: block;
+}
+#markers { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* One row per band, to the right of the canvas: triangle + 16 color cells + delete */
+.mrow { position: absolute; left: 100%; height: var(--row); display: flex; gap: 4px; pointer-events: none; }
+.marker {
+  align-self: flex-start; width: 0; height: 0;
+  border-top: calc(var(--row) / 2) solid transparent;
+  border-bottom: calc(var(--row) / 2) solid transparent;
+  border-right: 10px solid var(--accent);
+  cursor: pointer; pointer-events: auto;
+}
+.mrow.vblank .marker { border-right-color: #f84; cursor: default; }
+.strip { display: flex; gap: 1px; pointer-events: auto; }
+.sw { width: var(--row); height: var(--row); cursor: pointer; position: relative; }
+.sw:hover { outline: 1px solid var(--muted); z-index: 1; }
+.sw.selected { outline: 2px solid #fff; z-index: 2; }
+.del { width: 14px; text-align: center; line-height: var(--row); color: var(--muted); cursor: pointer; pointer-events: auto; }
+.del:hover { color: #f66; }
+
+#sidePanel {
+  position: absolute; top: 0; left: calc(100% + var(--strips-w) + 20px); width: 140px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+#editor {
+  padding: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+}
+#magnifier {
+  padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+}
+#magnifier { opacity: .4; transition: opacity .1s; }
+#magnifier.active { opacity: 1; }
+#magCanvas {
+  width: 100%; height: auto; aspect-ratio: 1;
+  image-rendering: pixelated; display: block; background: #000;
+}
+#magnifier .readout { margin-top: 4px; text-align: center; }
+.ch { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.ch label { width: 10px; color: var(--muted); }
+.ch input { flex: 1; min-width: 0; margin: 0; }
+.ch output { width: 10px; text-align: right; }
+.readout { color: var(--muted); font-size: 11px; }
+
+#ctxMenu {
+  position: fixed; display: none; z-index: 20; min-width: 140px;
+  background: var(--panel); border: 1px solid var(--line);
+}
+#ctxMenu div { padding: 5px 10px; cursor: pointer; }
+#ctxMenu div:hover { background: var(--accent); color: #000; }
+#outInfo { color: var(--muted); }
+
+/* Tile-row ruler, left of the image: one number per tile-row (8 scanlines) */
+#ruler { position: absolute; right: 100%; top: 0; width: 24px; margin-right: 4px; pointer-events: none; }
+#ruler div {
+  box-sizing: border-box; height: var(--row); line-height: var(--row);
+  border-top: 1px solid #2a2a2a; padding-right: 3px;
+  font-size: 9px; text-align: right; color: #666; font-variant-numeric: tabular-nums;
+}
+#ruler div.band { color: var(--accent); border-top-color: var(--accent); }
+
+/* Marker multi-selection */
+.mrow.sel .marker { border-right-color: #fff; }
+.mrow.sel .strip { box-shadow: 0 0 0 1px var(--accent); }
+
+/* Image position control */
+#imgPos { color: var(--muted); }
+#imgPos b { display: inline-block; min-width: 18px; text-align: center; color: var(--fg); font-weight: 600; }
+#imgPos button { padding: 0 5px; font-size: 9px; }
+#stats { margin-left: 14px; }
+#imgPos { margin-left: auto; }
+button:disabled { opacity: .35; cursor: default; }
+button:disabled:hover { border-color: var(--line); }
+
+/* Undo / redo / new + autosave status */
+#btnNew { margin-right: 10px; }
+#saveInfo { color: var(--muted); font-size: 11px; }
+
+/* Live warnings + notices */
+#warnPill { color: #fb3; border: 1px solid #fb3; border-radius: 9px; padding: 0 7px; font-size: 11px; cursor: help; }
+#notice { color: var(--muted); font-size: 11px; }
+.mrow.warn:not(.sel) .marker { border-right-color: #fb3; }
+
+/* Hover readout (row + palette index under the cursor) */
+#hoverInfo {
+  position: absolute; left: 4px; bottom: 4px; pointer-events: none;
+  background: #000a; color: #ddd; font-size: 10px; padding: 1px 5px; border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+#hoverInfo:empty { display: none; }
+
+/* Rows 28-29 (192-224 line NTSC screens don't reach them): dashed, dimmer -
+   the area is always there to use, this just flags it as PAL-only. */
+#ruler div.pal-only {
+  border-top-style: dashed; border-top-color: #a67;
+  background: rgba(170,102,119,.18);
+  color: #c98; font-style: italic;
+}

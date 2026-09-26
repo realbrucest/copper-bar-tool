@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mega Drive Copper Bands Tool</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="toolbar">
+  <button id="btnUndo" title="Undo the last change (Ctrl+Z)">Undo</button>
+  <button id="btnRedo" title="Redo (Ctrl+Y or Ctrl+Shift+Z)">Redo</button>
+  <button id="btnNew" title="Start an empty design. The work is autosaved in this browser, so reloading the page keeps it.">New</button>
+  <label class="btn" for="pngInput" title="Load an indexed PNG (max 16 colors). Replaces the vblank band palette; hint bands are kept.">Import PNG</label>
+  <input type="file" id="pngInput" accept="image/png" hidden>
+  <label class="btn" for="jsonInput" title="Load a saved design (bands.json). Replaces all bands. Invalid files are rejected, never corrected.">Import JSON</label>
+  <input type="file" id="jsonInput" accept=".json,application/json" hidden>
+  <button id="btnExportJson" title="Save the design (bands, positions, colors) as bands.json to reopen it later.">Export JSON</button>
+  <button id="btnExportInc" title="Generate copperbands.inc for the H-INT test: band data + band table. Written to the output folder, or downloaded if none is set.">Export .inc</button>
+  <button id="btnOutDir" title="Choose the folder where Export .inc writes copperbands.inc (e.g. Platform/mega/tests). The choice is remembered.">Output folder</button>
+  <span id="outInfo"></span>
+  <span id="notice"></span>
+  <span id="warnPill" style="display:none"></span>
+  <span id="imgPos" title="Vertical position of the imported image, in tile-rows from the top. Also: drag the image. The image always stays inside the 224 visible lines.">
+    Image row
+    <button id="imgUp" title="Move the image up one tile-row">&#9650;</button><b id="imgRow">0</b><button id="imgDown" title="Move the image down one tile-row">&#9660;</button>
+  </span>
+  <span id="stats" title="Distinct 0x0BGR values across all bands, vblank included (512 possible)">
+    Unique colors <b id="uniqueColors">1</b> / 512
+  </span>
+  <span id="saveInfo" title="The session (bands, colors, image) is saved automatically in this browser and restored on load."></span>
+  <span id="help" title="Right-click the image: add a hint band. Click a color cell: edit it. Drag a triangle: move the band (snaps to tile-rows). Right-click a triangle or click x: delete the band.">?</span>
+</div>
+<div id="importErr" class="err"></div>
+
+<div id="canvasWrap">
+  <div id="ruler"></div>
+  <canvas id="main" width="320" height="240" title="Drag: move the image vertically (snaps to tile-rows). Double-click or right-click: add a hint band at this row. Click a pixel: edit its palette color."></canvas>
+  <div id="hoverInfo"></div>
+  <div id="markers"></div>
+  <div id="sidePanel">
+    <div id="editor">
+      <div class="readout" id="edInfo">Select a color</div>
+      <div id="edSliders"></div>
+    </div>
+    <div id="magnifier">
+      <canvas id="magCanvas" width="128" height="128"></canvas>
+      <div class="readout" id="magInfo">Hover the image to zoom in</div>
+    </div>
+  </div>
+</div>
+
+<div id="ctxMenu"></div>
+
+<!-- Load order matters: each file relies on globals declared by the
+     ones before it (classic, non-module scripts, so file:// works
+     with no local server needed). -->
+<script src="js/constants.js"></script>
+<script src="js/state.js"></script>
+<script src="js/canvas-render.js"></script>
+<script src="js/markers.js"></script>
+<script src="js/context-menu.js"></script>
+<script src="js/palette-editor.js"></script>
+<script src="js/png-import.js"></script>
+<script src="js/export.js"></script>
+<script src="js/json-import.js"></script>
+<script src="js/history.js"></script>
+<script src="js/checks.js"></script>
+<script src="js/palette-clipboard.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
